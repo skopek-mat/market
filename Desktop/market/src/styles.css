@@ -1,1 +1,18 @@
-/* You can add global styles to this file, and also import other style files */
+.flag-icon {
+    width: 20px;
+    height: 15px;
+    margin-right: 8px;
+  }
+  
+  .bi-arrow-up {
+    color: green;
+  }
+  
+  .bi-arrow-down {
+    color: red;
+  }
+  
+  .bi-arrow-right {
+    color: gray;
+  }
+  
