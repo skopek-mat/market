@@ -1,14 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CurrencyService } from './currency.service';
-
-interface Rate {
-  currency: string;
-  code: string;
-  bid: number;
-  ask: number;
-  change: number;
-}
+import { CurrencyService, SingleRate } from './currency.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-currency',
@@ -17,7 +10,7 @@ interface Rate {
   templateUrl: './curency.component.html',
   styleUrls: ['./curency.component.css']
 })
-export class CurrencyComponent implements OnInit {
+export class CurrencyComponent implements OnInit, OnDestroy {
   exchangeRates: {
     [code: string]: {
       rate: number;
@@ -25,15 +18,17 @@ export class CurrencyComponent implements OnInit {
       flag: string;
     }
   } = {};
-  error = '';
 
-   waluty: string[] = [
+  error = '';
+  private _subscription = new Subscription();
+
+  waluty: string[] = [
     'USD', 'AUD', 'CAD', 'EUR', 'HUF',
     'CHF', 'GBP', 'JPY', 'CZK', 'DKK',
     'NOK', 'SEK', 'XDR'
   ];
 
-  private flagMap: { [key: string]: string } = {
+  private _flagMap: { [key: string]: string } = {
     USD: 'https://flagcdn.com/us.svg',
     AUD: 'https://flagcdn.com/au.svg',
     CAD: 'https://flagcdn.com/ca.svg',
@@ -46,27 +41,26 @@ export class CurrencyComponent implements OnInit {
     DKK: 'https://flagcdn.com/dk.svg',
     NOK: 'https://flagcdn.com/no.svg',
     SEK: 'https://flagcdn.com/se.svg',
-    XDR: 'https://flagcdn.com/un.svg' 
+    XDR: 'https://flagcdn.com/un.svg'
   };
 
-  constructor(private currencyService: CurrencyService) {}
+  constructor(private _currencyService: CurrencyService) {}
 
   ngOnInit(): void {
     this.loadRates();
   }
 
   loadRates(): void {
-    this.currencyService.getExchangeRatesForTwoDays().subscribe(
+    const sub = this._currencyService.getExchangeRatesForTwoDays().subscribe(
       ({ todayRates, yesterdayRates }) => {
         for (const todayRate of todayRates) {
-          const yesterdayRate = yesterdayRates.find((rate: Rate) => rate.currency === todayRate.currency);
+          const yesterdayRate = yesterdayRates.find((rate: SingleRate) => rate.currency === todayRate.currency);
 
           if (this.waluty.includes(todayRate.currency) && yesterdayRate) {
-            const change = todayRate.change;
             this.exchangeRates[todayRate.currency] = {
               rate: todayRate.rate,
-              change,
-              flag: this.flagMap[todayRate.currency] || ''
+              change: todayRate.change,
+              flag: this._flagMap[todayRate.currency] || ''
             };
           }
         }
@@ -75,5 +69,11 @@ export class CurrencyComponent implements OnInit {
         this.error = 'Błąd podczas pobierania danych.';
       }
     );
+
+    this._subscription.add(sub);
+  }
+
+  ngOnDestroy(): void {
+    this._subscription.unsubscribe();
   }
 }
