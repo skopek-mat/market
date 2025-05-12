@@ -50,7 +50,11 @@ export class CurrencyComponent implements OnInit, OnDestroy {
     this.loadRates();
   }
 
-  loadRates(): void {
+  ngOnDestroy(): void {
+    this._subscription.unsubscribe();
+  }
+
+  private loadRates(): void {
     const sub = this._currencyService.getExchangeRatesForTwoDays().subscribe(
       ({ todayRates, yesterdayRates }) => {
         for (const todayRate of todayRates) {
@@ -71,9 +75,5 @@ export class CurrencyComponent implements OnInit, OnDestroy {
     );
 
     this._subscription.add(sub);
-  }
-
-  ngOnDestroy(): void {
-    this._subscription.unsubscribe();
   }
 }
