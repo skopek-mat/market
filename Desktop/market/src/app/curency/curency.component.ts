@@ -1,74 +1,79 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { CurrencyService } from './currency.service';
+
+interface Rate {
+  currency: string;
+  code: string;
+  bid: number;
+  ask: number;
+  change: number;
+}
 
 @Component({
   selector: 'app-currency',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './curency.component.html',
+  styleUrls: ['./curency.component.css']
 })
 export class CurrencyComponent implements OnInit {
   exchangeRates: {
-    [key: string]: {
+    [code: string]: {
       rate: number;
       change: number;
       flag: string;
     }
   } = {};
-  error: string = '';
+  error = '';
+
+   waluty: string[] = [
+    'USD', 'AUD', 'CAD', 'EUR', 'HUF',
+    'CHF', 'GBP', 'JPY', 'CZK', 'DKK',
+    'NOK', 'SEK', 'XDR'
+  ];
+
+  private flagMap: { [key: string]: string } = {
+    USD: 'https://flagcdn.com/us.svg',
+    AUD: 'https://flagcdn.com/au.svg',
+    CAD: 'https://flagcdn.com/ca.svg',
+    EUR: 'https://flagcdn.com/eu.svg',
+    HUF: 'https://flagcdn.com/hu.svg',
+    CHF: 'https://flagcdn.com/ch.svg',
+    GBP: 'https://flagcdn.com/gb.svg',
+    JPY: 'https://flagcdn.com/jp.svg',
+    CZK: 'https://flagcdn.com/cz.svg',
+    DKK: 'https://flagcdn.com/dk.svg',
+    NOK: 'https://flagcdn.com/no.svg',
+    SEK: 'https://flagcdn.com/se.svg',
+    XDR: 'https://flagcdn.com/un.svg' 
+  };
+
+  constructor(private currencyService: CurrencyService) {}
 
   ngOnInit(): void {
-    this.fetchExchangeRates();
+    this.loadRates();
   }
 
-  fetchExchangeRates(): void {
-    const waluty = ['USD', 'EUR', 'GBP', 'CHF'];
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
+  loadRates(): void {
+    this.currencyService.getExchangeRatesForTwoDays().subscribe(
+      ({ todayRates, yesterdayRates }) => {
+        for (const todayRate of todayRates) {
+          const yesterdayRate = yesterdayRates.find((rate: Rate) => rate.currency === todayRate.currency);
 
-    const todayStr = today.toISOString().split('T')[0];
-    // const todayStr = "2025-05-08";
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-    Promise.all(
-      waluty.map(currency =>
-        fetch(`https://api.nbp.pl/api/exchangerates/rates/A/${currency}/${yesterdayStr}/${todayStr}/?format=json`)
-          .then(res => {
-            // console.log(res.json())
-            return res.json();
-            
-          })
-          .then(data => {
-            const rates = data.rates;
-            const currentRate = rates[rates.length - 1].mid;
-            const previousRate = rates.length > 1 ? rates[rates.length - 2].mid : currentRate;
-            const change = (((currentRate - previousRate) / previousRate) * 100);
-
-            this.exchangeRates[currency] = {
-              rate: currentRate,
-              change: change,
-              flag: this.getFlagUrl(currency)
+          if (this.waluty.includes(todayRate.currency) && yesterdayRate) {
+            const change = todayRate.change;
+            this.exchangeRates[todayRate.currency] = {
+              rate: todayRate.rate,
+              change,
+              flag: this.flagMap[todayRate.currency] || ''
             };
-            console.log(data)
-          })
-                    .catch(err => {
-            console.error(err);
-            this.exchangeRates[currency] = { rate: 0, change: 0, flag: '' };
-            this.error = 'Brak danych';
-            return 0;
-          })
-      )
+          }
+        }
+      },
+      () => {
+        this.error = 'Błąd podczas pobierania danych.';
+      }
     );
-  }
-
-  getFlagUrl(currency: string): string {
-    const flags: { [key: string]: string } = {
-      'USD': 'https://flagcdn.com/us.svg',
-      'EUR': 'https://flagcdn.com/eu.svg',
-      'GBP': 'https://flagcdn.com/gb.svg',
-      'CHF': 'https://flagcdn.com/ch.svg'
-    };
-    return flags[currency] || '';
   }
 }

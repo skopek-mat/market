@@ -1,0 +1,82 @@
+/* .currency-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: rgb(21,21,27);
+    color: white;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .currency-table th,
+  .currency-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #333;
+  }
+  
+  .currency-table th {
+    background-color: rgb(51, 51, 58);
+  }
+  
+  .currency-table td {
+    background-color: rgba(21, 21, 27, 0.247);
+  }
+  .currency-section {
+    
+    color: #ddd;
+    background-color:rgb(13,15,21) ;
+    padding-left: 230px;
+    padding-right: 1rem;
+    padding-top: 2rem;
+    padding-bottom: 4rem ;
+    height: 100%;
+  }
+ */
+
+
+ .currency-table {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    background-color: rgba(21, 21, 27, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: white;
+    border-radius: 16px;
+    overflow: hidden;
+    font-size: 1.1rem;        /* większy tekst */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);  /* lekkie cieniowanie */
+  }
+  
+  .currency-table th,
+  .currency-table td {
+    padding: 1rem 1.5rem;     /* więcej przestrzeni */
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .currency-table th {
+    /* background-color: rgba(51, 51, 58, 0.8); */
+    background-color: rgba(112, 112, 136, 0.603);
+
+    font-weight: 600;
+    font-size: 1.15rem;
+  }
+  
+  .currency-table td {
+    /* background-color: rgba(21, 21, 27, 0.3); */
+    background-color: rgba(89, 89, 110, 0.3);
+
+  }
+  
+  .currency-section {
+    padding-left: 230px;
+    padding-right: 2rem;
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  

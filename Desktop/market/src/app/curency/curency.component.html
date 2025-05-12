@@ -1,55 +1,41 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<section class="currency-section">
 
-<div class="container-fluid bg-dark text-light min-vh-100 px-0">
-  <div class="row m-0">
-    
-    
-    <div class="col-12 col-md-4" style="margin-top: 30px; padding-left: 20px;">
- 
-     
+  <div *ngIf="error" class="error-box">{{ error }}</div>
 
-      <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <table class="currency-table">
+    <thead>
+      <tr>
+        <th>Waluta</th>
+        <th>Kurs (PLN)</th>
+        <th>Zmiana (%)</th>
+        <th>Trend</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let currency of waluty" [ngClass]="{'d-none': !exchangeRates[currency]}" >
+        <ng-container *ngIf="exchangeRates[currency] as rateData">
+          <td>
+            <img [src]="rateData.flag" alt="{{ currency }}" width="24" height="16" />
+            {{ currency }}
+          </td>
+          <td>{{ rateData.rate.toFixed(4) }}</td>
+          <td [ngClass]="{
+                'green': rateData.change > 0,
+                'red': rateData.change < 0,
+                'yellow': rateData.change === 0
+              }">
+            {{ rateData.change.toFixed(2) }}%
+          </td>
+          <td>
+            <i [ngClass]="{
+                  'bi bi-arrow-up': rateData.change > 0,
+                  'bi bi-arrow-down': rateData.change < 0,
+                  'bi bi-arrow-right': rateData.change === 0
+                }"></i>
+          </td>
+        </ng-container>
+      </tr>
+    </tbody>
+  </table>
 
-      <table class="table table-dark table-hover table-striped table-bordered align-middle text-center">
-        <thead class="table-light text-dark">
-          <tr>
-            <th scope="col">Waluta</th>
-            <th scope="col">Kurs (PLN)</th>
-            <th scope="col">Zmiana</th>
-            <th scope="col">Trend</th>
-          </tr>
-        </thead>
-        <tbody>
-          <ng-container *ngFor="let currency of ['USD', 'EUR', 'GBP', 'CHF']">
-            <tr *ngIf="exchangeRates[currency] as rateData">
-              <td class="text-start">
-                <img [src]="rateData.flag" alt="{{ currency }}" class="me-2" width="24" height="16">
-                {{ currency }}
-              </td>
-              <td>{{ rateData.rate.toFixed(4) }}</td>
-              <td [ngClass]="{
-                    'text-success': rateData.change > 0,
-                    'text-danger': rateData.change < 0,
-                    'text-warning': rateData.change === 0
-                  }">
-                {{ rateData.change.toFixed(2) }}%
-              </td>
-              <td>
-                <i [ngClass]="{
-                      'bi bi-arrow-up': rateData.change > 0,
-                      'bi bi-arrow-down': rateData.change < 0,
-                      'bi bi-arrow-right': rateData.change === 0
-                    }"></i>
-              </td>
-            </tr>
-          </ng-container>
-        </tbody>
-      </table>
-    </div>
-
-   
-    <div class="col-md-8 d-none d-md-block">
-    </div>
-
-  </div>
-</div>
+</section>
