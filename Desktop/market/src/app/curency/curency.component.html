@@ -1,0 +1,41 @@
+<section class="currency-section">
+
+  <div *ngIf="error" class="error-box">{{ error }}</div>
+
+  <table class="currency-table">
+    <thead>
+      <tr>
+        <th>Waluta</th>
+        <th>Kurs (PLN)</th>
+        <th>Zmiana (%)</th>
+        <th>Trend</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let currency of waluty" [ngClass]="{'d-none': !exchangeRates[currency]}" >
+        <ng-container *ngIf="exchangeRates[currency] as rateData">
+          <td>
+            <img [src]="rateData.flag" alt="{{ currency }}" width="24" height="16" />
+            {{ currency }}
+          </td>
+          <td>{{ rateData.rate.toFixed(4) }}</td>
+          <td [ngClass]="{
+                'green': rateData.change > 0,
+                'red': rateData.change < 0,
+                'yellow': rateData.change === 0
+              }">
+            {{ rateData.change.toFixed(2) }}%
+          </td>
+          <td>
+            <i [ngClass]="{
+                  'bi bi-arrow-up': rateData.change > 0,
+                  'bi bi-arrow-down': rateData.change < 0,
+                  'bi bi-arrow-right': rateData.change === 0
+                }"></i>
+          </td>
+        </ng-container>
+      </tr>
+    </tbody>
+  </table>
+
+</section>

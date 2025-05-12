@@ -1,1 +1,48 @@
-/* You can add global styles to this file, and also import other style files */
+.flag-icon {
+    width: 20px;
+    height: 15px;
+    margin-right: 8px;
+  }
+  
+  .bi-arrow-up {
+    color: green;
+  }
+  
+  .bi-arrow-down {
+    color: red;
+  }
+  
+  .bi-arrow-right {
+    color: gray;
+  }
+  
+  
+
+
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0a0a1a, #1a1a2f, #11111d);
+    background-attachment: fixed; 
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(108, 92, 231, 0.25) 0%, transparent 60%), 
+                radial-gradient(circle at top right, rgba(0, 206, 201, 0.15) 0%, transparent 60%);
+    filter: blur(100px);
+    z-index: -1;
+    pointer-events: none;
+  }
+  
