@@ -1,0 +1,28 @@
+<div class="news-wrapper">
+
+  <div class="news-grid">
+    <div *ngFor="let article of articles" class="news-card" (click)="openArticle(article)">
+      <img *ngIf="article.image" [src]="article.image" alt="thumb" />
+      <div class="content">
+        <h3>{{ article.title }}</h3>
+        <p>{{ article.description }}</p>
+        <div class="meta">{{ article.publishedAt | date:'short' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="article-modal" *ngIf="selectedArticle">
+    <div class="modal-content">
+      <button class="close-btn" (click)="closeArticle()">✖</button>
+      <h2>{{ selectedArticle.title }}</h2>
+      <img *ngIf="selectedArticle.image" [src]="selectedArticle.image" />
+      <p>{{ selectedArticle.content }}</p>
+      <a target="_blank"  href="{{selectedArticle.url}}"> Learn more</a>
+
+      <div class="meta">
+        Źródło: {{ selectedArticle.source.name }} |
+        {{ selectedArticle.publishedAt | date:'short' }}
+      </div>
+    </div>
+  </div>
+</div>
