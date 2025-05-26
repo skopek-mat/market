@@ -5,6 +5,19 @@ import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+export interface NewsArticle {
+  title: string;
+  description: string;
+  url: string;
+  image: string;
+  publishedAt: string;
+  content: string;
+  source: {
+    name: string;
+    url: string;
+  };
+}
+
 @Component({
   selector: 'app-news',
   templateUrl: './news.component.html',
@@ -12,16 +25,16 @@ import { takeUntil } from 'rxjs/operators';
   styleUrls: ['./news.component.css']
 })
 export class NewsComponent implements OnInit, OnDestroy {
-  articles: any[] = [];
-  selectedArticle: any = null;
+  articles: NewsArticle[] = [];
+  selectedArticle: NewsArticle | null = null;
 
-  private destroy$ = new Subject<void>(); 
+  private _destroy$ = new Subject<void>();
 
   constructor(private newsService: NewsService) {}
 
   ngOnInit(): void {
     this.newsService.getNews()
-      .pipe(takeUntil(this.destroy$)) 
+      .pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (data) => {
           this.articles = data.articles;
@@ -32,16 +45,16 @@ export class NewsComponent implements OnInit, OnDestroy {
       });
   }
 
-  openArticle(article: any) {
+  ngOnDestroy(): void {
+    this._destroy$.next();
+    this._destroy$.complete();
+  }
+
+  openArticle(article: NewsArticle): void {
     this.selectedArticle = article;
   }
 
-  closeArticle() {
+  closeArticle(): void {
     this.selectedArticle = null;
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }

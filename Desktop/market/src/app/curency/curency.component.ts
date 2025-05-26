@@ -17,26 +17,24 @@ export class CurrencyComponent implements OnInit, OnDestroy {
   exchangeRates: ExchangeRate[] = [];
   selectedCurrency: string = '';
   selectedCurrencyData: ExchangeRate | null = null;
-  selectedRange: string = 'month';
-  chart: any;
+  selectedRange: 'week' | 'month' | '3m' | 'year' = 'month';
   error: string = '';
   showCurrencyList: boolean = false;
-
   fromCurrency: string = 'PLN';
   toCurrency: string = 'USD';
   fromAmount: number = 1;
   toAmount: number = 0;
-
   trendDirection: 'up' | 'down' | 'none' = 'none';
   trendChangePercent: number = 0;
 
-  private destroy$ = new Subject<void>();
+  private _chart: Chart | null = null;
+  private _destroy$ = new Subject<void>();
 
   constructor(private currencyService: CurrencyService) {}
 
   ngOnInit(): void {
     this.currencyService.getExchangeRates()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntil(this._destroy$))
       .subscribe(
         (rates) => {
           this.exchangeRates = rates;
@@ -53,18 +51,18 @@ export class CurrencyComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    this._destroy$.next();
+    this._destroy$.complete();
 
-    if (this.chart) {
-      this.chart.destroy();
+    if (this._chart) {
+      this._chart.destroy();
     }
   }
 
   setCurrency(code: string): void {
     this.selectedCurrency = code;
     this.selectedCurrencyData = this.exchangeRates.find(rate => rate.code === code) || null;
-    this.loadTrend();
+    this._loadTrend();
     this.showCurrencyList = false;
 
     setTimeout(() => {
@@ -76,38 +74,36 @@ export class CurrencyComponent implements OnInit, OnDestroy {
     this.showCurrencyList = !this.showCurrencyList;
   }
 
-  getRate(code: string): number {
-    if (code === 'PLN') return 1;
-    return this.exchangeRates.find(r => r.code === code)?.mid || 1;
-  }
-
-  getEffectiveRate(from: string, to: string): number {
-    const fromRate = this.getRate(from);
-    const toRate = this.getRate(to);
-    return fromRate / toRate;
-  }
-
   calculateToAmount(): void {
-    const rate = this.getEffectiveRate(this.fromCurrency, this.toCurrency);
+    const rate = this._getEffectiveRate(this.fromCurrency, this.toCurrency);
     this.toAmount = +(this.fromAmount * rate).toFixed(4);
   }
 
   calculateFromAmount(): void {
-    const rate = this.getEffectiveRate(this.toCurrency, this.fromCurrency);
+    const rate = this._getEffectiveRate(this.toCurrency, this.fromCurrency);
     this.fromAmount = +(this.toAmount * rate).toFixed(4);
   }
 
   getFlagUrl(code: string): string {
-    if(code !== "XDR"){
-    return `https://flagcdn.com/w40/${code.slice(0, 2).toLowerCase()}.png`;
-
-    }else{
-          return `https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/IMF-Seal_ENG_RGB.svg/1024px-IMF-Seal_ENG_RGB.svg.jpg`;
-
+    if (code !== 'XDR') {
+      return `https://flagcdn.com/w40/${code.slice(0, 2).toLowerCase()}.png`;
+    } else {
+      return `https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/IMF-Seal_ENG_RGB.svg/1024px-IMF-Seal_ENG_RGB.svg.jpg`;
     }
   }
 
-  loadTrend(): void {
+  private _getRate(code: string): number {
+    if (code === 'PLN') return 1;
+    return this.exchangeRates.find(r => r.code === code)?.mid || 1;
+  }
+
+  private _getEffectiveRate(from: string, to: string): number {
+    const fromRate = this._getRate(from);
+    const toRate = this._getRate(to);
+    return fromRate / toRate;
+  }
+
+  private _loadTrend(): void {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
@@ -121,7 +117,7 @@ export class CurrencyComponent implements OnInit, OnDestroy {
     const yesterdayFormatted = yesterdayStr.toISOString().split('T')[0];
 
     this.currencyService.getHistoricalRates(this.selectedCurrency, yesterdayFormatted, todayStr)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntil(this._destroy$))
       .subscribe(
         (data) => {
           if (data.length >= 2) {
@@ -133,7 +129,7 @@ export class CurrencyComponent implements OnInit, OnDestroy {
             this.trendDirection = 'none';
           }
         },
-        (error) => {
+        () => {
           this.trendDirection = 'none';
           this.trendChangePercent = 0;
         }
@@ -155,12 +151,12 @@ export class CurrencyComponent implements OnInit, OnDestroy {
     const end = endDate.toISOString().split('T')[0];
 
     this.currencyService.getHistoricalRates(this.selectedCurrency, start, end)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntil(this._destroy$))
       .subscribe(
         (data) => {
           const labels = data.map(rate => rate.effectiveDate);
           const values = data.map(rate => rate.mid);
-          this.renderChart(labels, values);
+          this._renderChart(labels, values);
         },
         (error) => {
           this.error = error.message;
@@ -168,7 +164,7 @@ export class CurrencyComponent implements OnInit, OnDestroy {
       );
   }
 
-  renderChart(labels: string[], data: number[]): void {
+  private _renderChart(labels: string[], data: number[]): void {
     let borderColor = '#00ff88';
     let backgroundColor = 'rgba(0, 255, 136, 0.1)';
 
@@ -180,12 +176,12 @@ export class CurrencyComponent implements OnInit, OnDestroy {
       backgroundColor = 'rgba(200, 200, 200, 0.05)';
     }
 
-    if (this.chart) this.chart.destroy();
+    if (this._chart) this._chart.destroy();
     const ctx = document.getElementById('currencyChart') as HTMLCanvasElement;
 
     const trimmedLabels = labels.map((l, i) => i === 0 || i === labels.length ? l : '');
 
-    this.chart = new Chart(ctx, {
+    this._chart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,

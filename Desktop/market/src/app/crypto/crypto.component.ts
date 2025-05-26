@@ -17,9 +17,9 @@ export class CryptoComponent implements OnInit, OnDestroy {
   cryptos: CryptoRate[] = [];
   selectedCrypto: CryptoRate | null = null;
   selectedRange = '30';
-  chart: any;
 
-  private destroy$ = new Subject<void>();
+  private chart: any;
+  private _destroy$ = new Subject<void>();
 
   constructor(private cryptoService: CryptoService) {}
 
@@ -31,22 +31,45 @@ export class CryptoComponent implements OnInit, OnDestroy {
     }
 
     this.cryptoService.getCryptos()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntil(this._destroy$))
       .subscribe((apiList) => {
         this.rotationalFetchAndStore(apiList);
       });
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    this._destroy$.next();
+    this._destroy$.complete();
 
     if (this.chart) {
       this.chart.destroy();
     }
   }
 
-  loadAllFromLocalStorage(): void {
+  setCrypto(crypto: CryptoRate): void {
+    this.selectedCrypto = crypto;
+    this.loadChartData();
+  }
+
+   loadChartData(): void {
+    if (!this.selectedCrypto) return;
+
+    const cached = this.cryptoService.loadFromLocalStorage(this.selectedCrypto.id);
+    if (!cached) return;
+
+    const filtered = this.filterHistoricalDataByDays(cached.historical.prices, +this.selectedRange);
+
+    const labels = filtered.map(p => new Date(p[0]).toLocaleDateString());
+    const values = filtered.map(p => p[1]);
+
+    this.renderChart(labels, values);
+  }
+
+  private filterHistoricalDataByDays(prices: number[][], days: number): number[][] {
+    return prices.slice(-days);
+  }
+
+  private loadAllFromLocalStorage(): void {
     this.cryptos = [];
 
     for (let i = 0; i < localStorage.length; i++) {
@@ -62,7 +85,7 @@ export class CryptoComponent implements OnInit, OnDestroy {
     this.cryptos.sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  rotationalFetchAndStore(apiList: CryptoRate[]): void {
+  private rotationalFetchAndStore(apiList: CryptoRate[]): void {
     const rotationKey = 'crypto_rotation_index';
     const index = +(localStorage.getItem(rotationKey) || '0');
     const chunkSize = 3;
@@ -75,7 +98,7 @@ export class CryptoComponent implements OnInit, OnDestroy {
 
     chunk.forEach((crypto) => {
       this.cryptoService.getHistoricalRates(crypto.id)
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntil(this._destroy$))
         .subscribe((historical) => {
           this.cryptoService.saveToLocalStorage(crypto.id, crypto, historical);
           this.loadAllFromLocalStorage();
@@ -85,30 +108,8 @@ export class CryptoComponent implements OnInit, OnDestroy {
     localStorage.setItem('crypto_rotation_index', ((start + chunkSize) % total).toString());
   }
 
-  setCrypto(crypto: CryptoRate): void {
-    this.selectedCrypto = crypto;
-    this.loadChartData();
-  }
-
-  loadChartData(): void {
-    if (!this.selectedCrypto) return;
-
-    const cached = this.cryptoService.loadFromLocalStorage(this.selectedCrypto.id);
-    if (!cached) return;
-
-    const filtered = this.filterHistoricalDataByDays(cached.historical.prices, +this.selectedRange);
-
-    const labels = filtered.map(p => new Date(p[0]).toLocaleDateString());
-    const values = filtered.map(p => p[1]);
-
-    this.renderChart(labels, values);
-  }
-
-  filterHistoricalDataByDays(prices: number[][], days: number): number[][] {
-    return prices.slice(-days);
-  }
-
-  renderChart(labels: string[], data: number[]): void {
+  
+  private renderChart(labels: string[], data: number[]): void {
     if (this.chart) this.chart.destroy();
 
     const ctx = document.getElementById('currencyChart') as HTMLCanvasElement;
