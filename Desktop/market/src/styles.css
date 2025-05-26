@@ -1,24 +1,3 @@
-.flag-icon {
-    width: 20px;
-    height: 15px;
-    margin-right: 8px;
-  }
-  
-  .bi-arrow-up {
-    color: green;
-  }
-  
-  .bi-arrow-down {
-    color: red;
-  }
-  
-  .bi-arrow-right {
-    color: gray;
-  }
-  
-  
-
-
   body {
     margin: 0;
     padding: 0;
@@ -32,6 +11,7 @@
     overflow-x: hidden;
   }
   
+
   body::before {
     content: '';
     position: fixed;
@@ -46,3 +26,4 @@
     pointer-events: none;
   }
   
+
